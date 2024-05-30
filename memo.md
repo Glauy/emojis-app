@@ -1,5 +1,8 @@
 docker exec -it mongo-replica mongosh -u glauy -p glauy520 --authenticationDatabase admin
 
+git branch -M main
+git remote add origin git@github.com:Glauy/emojis-app.git
+
 Deploying your app to serverless or edge functions?
 
 $ npx prisma generate

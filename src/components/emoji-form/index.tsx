@@ -14,7 +14,7 @@ interface EmojiFormProps {
 export function EmojiForm({ initialPrompt }: EmojiFormProps) {
   const initialState = { message: null, errors: {} };
   // const [state, dispatch] = useFormState(createInvoice, initialState);
-  const [formState, formAction] = useFormState(createEmoji, initialState);
+  const [formState, formAction] = useFormState(createEmoji, null);
   const submitRef = useRef<React.ElementRef<"button">>(null);
   const [token, setToken] = useState("");
 
