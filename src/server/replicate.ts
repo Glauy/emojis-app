@@ -18,21 +18,28 @@ export class ReplicateClient {
     webhook.searchParams.set("id", id);
     webhook.searchParams.set("secret", process.env.API_SECRET as string);
 
-    return this.replicate.predictions.create({
-      version:
-        "dee76b5afde21b0f01ed7925f0665b7e879c50ee718c5f78a9d38e04d523cc5e",
-      input: {
-        prompt: `A TOK emoji of a ${prompt}`,
-        width: EMOJI_SIZE,
-        height: EMOJI_SIZE,
-        num_inference_steps: 30,
-        // prompt_strength: 0.8,
-        negative_prompt:
-          "racist, xenophobic, antisemitic, islamophobic, bigoted",
-      },
-      webhook: webhook.toString(),
-      webhook_events_filter: ["completed"],
-    });
+    // prediction.id
+    return this.replicate.predictions
+      .create({
+        version:
+          "dee76b5afde21b0f01ed7925f0665b7e879c50ee718c5f78a9d38e04d523cc5e",
+        input: {
+          prompt: `A TOK emoji of a ${prompt}`,
+          width: EMOJI_SIZE,
+          height: EMOJI_SIZE,
+          num_inference_steps: 30,
+          // prompt_strength: 0.8,
+          apply_watermark: false,
+          negative_prompt:
+            "racist, xenophobic, antisemitic, islamophobic, bigoted",
+        },
+        webhook: webhook.toString(),
+        webhook_events_filter: ["completed"],
+      })
+      .then((prediction) => {
+        console.log("Prediction ID:", prediction.id); // 打印 prediction id
+        return prediction; // 将 prediction 对象传递给下一个 Promise 链
+      });
   }
 
   async removeBackground({ id, image }: { id: string; image: string }) {
@@ -76,6 +83,31 @@ export class ReplicateClient {
       (output as string[] | undefined)?.join("").trim()
     );
     return safetyRating || 0;
+  }
+
+  async getPredictionStatus(predictionId: string) {
+    const prediction = await this.replicate.predictions.get(predictionId);
+    return prediction;
+  }
+
+  async waitForPrediction(predictionId: string) {
+    while (true) {
+      const prediction = await this.getPredictionStatus(predictionId);
+      console.log(`Current status: ${prediction.status}`);
+
+      if (prediction.status === "succeeded") {
+        console.log("Prediction succeeded:", prediction.output);
+        return prediction.output;
+      }
+
+      if (prediction.status === "failed") {
+        console.error("Prediction failed:", prediction.error);
+        throw new Error(prediction.error);
+      }
+
+      // 等待一段时间，然后再次查询
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
   }
 }
 
