@@ -19,7 +19,7 @@ export class ReplicateClient {
     webhook.searchParams.set("secret", process.env.API_SECRET as string);
 
     // prediction.id
-    return this.replicate.predictions
+    const prediction = await this.replicate.predictions
       .create({
         version:
           "dee76b5afde21b0f01ed7925f0665b7e879c50ee718c5f78a9d38e04d523cc5e",
@@ -40,6 +40,8 @@ export class ReplicateClient {
         console.log("Prediction ID:", prediction.id); // 打印 prediction id
         return prediction; // 将 prediction 对象传递给下一个 Promise 链
       });
+    console.log("Prediction ID:", prediction?.id);
+    return prediction;
   }
 
   async removeBackground({ id, image }: { id: string; image: string }) {
